@@ -1,10 +1,13 @@
-const EditorPane: React.FC<{
+import { X } from "lucide-react";
+import { useVSCodeStore } from "../store";
+import { Editor } from "@monaco-editor/react";
+
+const EditorPanel: React.FC<{
   handleEditorChange: (value: string | undefined) => void;
 }> = ({ handleEditorChange }) => {
-  const { selectedFile, openFiles, files, setSelectedFile, closeFile } =
-    useVSCodeStore();
+  const { selectedFile, openFiles, files, setSelectedFile, closeFile } = useVSCodeStore();
   return (
-    <div className="flex-grow flex flex-col">
+    <div className="flex-grow flex flex-col h-full">
       <div className="flex space-x-2 bg-gray-900 p-2 border-b border-gray-700">
         {openFiles.map((fileName) => (
           <div
@@ -25,9 +28,11 @@ const EditorPane: React.FC<{
       </div>
       {selectedFile ? (
         <Editor
-          height="80vh"
+          height="calc(100vh - 200px)" // subtracting top bar height
           width="100%"
-          defaultLanguage={selectedFile.endsWith('.js') ? 'javascript' : 'json'}
+          defaultLanguage={
+            selectedFile.endsWith('.js') ? 'javascript' : 'json'
+          }
           value={files[selectedFile]?.file.contents || ''}
           theme="vs-dark"
           onChange={handleEditorChange}
@@ -41,4 +46,4 @@ const EditorPane: React.FC<{
   );
 };
 
-export default EditorPane;
+export default EditorPanel;

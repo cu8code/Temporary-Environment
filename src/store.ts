@@ -1,5 +1,4 @@
-// store.ts
-import create from 'zustand';
+import { create } from 'zustand';
 import { WebContainer } from '@webcontainer/api';
 
 interface FileSystem {
@@ -26,6 +25,7 @@ interface VSCodeState {
   addFile: (fileName: string, content: string) => void;
   updateFile: (fileName: string, content: string) => void;
   closeFile: (fileName: string) => void;
+  updateFileSystem: () => Promise<void>;
 }
 
 const initialFileSystem: FileSystem = {
@@ -52,7 +52,7 @@ const initialFileSystem: FileSystem = {
   },
 };
 
-export const useVSCodeStore = create<VSCodeState>((set) => ({
+export const useVSCodeStore = create<VSCodeState>((set, get) => ({
   selectedFile: 'index.js',
   openFiles: ['index.js'],
   files: initialFileSystem,
@@ -62,30 +62,39 @@ export const useVSCodeStore = create<VSCodeState>((set) => ({
   setSelectedFile: (file) => set({ selectedFile: file }),
   setOpenFiles: (files) => set({ openFiles: files }),
   setFiles: (files) => set({ files }),
-  setWebcontainerInstance: (instance) =>
-    set({ webcontainerInstance: instance }),
+  setWebcontainerInstance: (instance) => set({ webcontainerInstance: instance }),
   setShowExplorer: (show) => set({ showExplorer: show }),
   setShowTerminal: (show) => set({ showTerminal: show }),
-  addFile: (fileName, content) =>
-    set((state) => ({
-      files: {
-        ...state.files,
-        [fileName]: { file: { contents: content } },
-      },
-    })),
-  updateFile: (fileName, content) =>
-    set((state) => ({
-      files: {
-        ...state.files,
-        [fileName]: { file: { contents: content } },
-      },
-    })),
-  closeFile: (fileName) =>
-    set((state) => ({
-      openFiles: state.openFiles.filter((file) => file !== fileName),
-      selectedFile:
-        state.selectedFile === fileName
-          ? state.openFiles[0] || null
-          : state.selectedFile,
-    })),
+  addFile: (fileName, content) => set((state) => ({
+    files: {
+      ...state.files,
+      [fileName]: { file: { contents: content } },
+    },
+  })),
+  updateFile: (fileName, content) => set((state) => ({
+    files: {
+      ...state.files,
+      [fileName]: { file: { contents: content } },
+    },
+  })),
+  closeFile: (fileName) => set((state) => ({
+    openFiles: state.openFiles.filter((file) => file !== fileName),
+    selectedFile: state.selectedFile === fileName ? state.openFiles[0] || null : state.selectedFile,
+  })),
+  updateFileSystem: async () => {
+      const { webcontainerInstance, setFiles } = get();
+      if (webcontainerInstance) {
+        const updatedFiles: FileSystem = {};
+        const entries = await webcontainerInstance.fs.readdir('.');
+        for (const entry of entries) {
+          try {
+            const contents = await webcontainerInstance.fs.readFile(entry, 'utf-8');
+            updatedFiles[entry] = { file: { contents } };
+          } catch (error) {
+            console.error(`Error reading file ${entry}:`, error);
+          }
+        }
+        setFiles(updatedFiles);
+      }
+    },
 }));

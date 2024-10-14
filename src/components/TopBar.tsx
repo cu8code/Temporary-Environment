@@ -1,6 +1,7 @@
+import { useVSCodeStore } from "../store";
+
 const TopBar: React.FC = () => {
-  const { showExplorer, showTerminal, setShowExplorer, setShowTerminal } =
-    useVSCodeStore();
+  const { showExplorer, showTerminal, setShowExplorer, setShowTerminal } = useVSCodeStore();
   return (
     <div className="flex justify-between items-center p-2 bg-gray-900 border-b border-gray-700">
       <div className="flex space-x-2">
@@ -21,4 +22,4 @@ const TopBar: React.FC = () => {
   );
 };
 
-export default TopBar;
+export default TopBar

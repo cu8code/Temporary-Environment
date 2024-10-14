@@ -1,9 +1,10 @@
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect } from 'react';
 import { WebContainer } from '@webcontainer/api';
-import { TerminalContextProvider } from 'react-terminal';
-import { useVSCodeStore } from '../store';
-import TopBar from './components/TopBar';
+import { useVSCodeStore } from './store';
 import FileExplorer from './components/FileExplorer';
+import EditorPanel from './components/EditorPanel';
+import TerminalPanel from './components/TerminalPanel';
+import { TerminalContextProvider } from 'react-terminal';
 
 const VSCodeClone: React.FC = () => {
   const {
@@ -11,42 +12,30 @@ const VSCodeClone: React.FC = () => {
     openFiles,
     files,
     webcontainerInstance,
-    showExplorer,
-    showTerminal,
     setSelectedFile,
     setOpenFiles,
-    setFiles,
     setWebcontainerInstance,
-    updateFile,
+    updateFileSystem
   } = useVSCodeStore();
 
   useEffect(() => {
-    bootWebContainer();
+    if (!webcontainerInstance){
+      bootWebContainer();
+    }
+
+    return () => {
+      if (webcontainerInstance) {
+        webcontainerInstance.teardown()
+      }
+    }
   }, []);
 
   const bootWebContainer = async () => {
-    const instance = await WebContainer.boot();
-    setWebcontainerInstance(instance);
-    await instance.mount(files);
-  };
-
-  const updateFileSystem = useCallback(async () => {
-    if (webcontainerInstance) {
-      const updatedFiles: FileSystem = {};
-      for await (const entry of webcontainerInstance.fs.readdir('.', {
-        recursive: true,
-      })) {
-        if (entry.kind === 'file') {
-          const contents = await webcontainerInstance.fs.readFile(
-            entry.path,
-            'utf-8'
-          );
-          updatedFiles[entry.path] = { file: { contents } };
-        }
-      }
-      setFiles(updatedFiles);
-    }
-  }, [webcontainerInstance, setFiles]);
+      const instance = await WebContainer.boot();
+      setWebcontainerInstance(instance);
+      await instance.mount(files);
+      await updateFileSystem();
+    };
 
   const handleEditorChange = async (value: string | undefined) => {
     if (selectedFile && value !== undefined) {
@@ -58,24 +47,24 @@ const VSCodeClone: React.FC = () => {
   };
 
   const executeCommand = async (command: string) => {
-    if (!webcontainerInstance) return 'WebContainer not initialized';
+      if (!webcontainerInstance) return "WebContainer not initialized";
 
-    const parts = command.split(' ');
-    const process = await webcontainerInstance.spawn(parts[0], parts.slice(1));
+      const parts = command.split(' ');
+      const process = await webcontainerInstance.spawn(parts[0], parts.slice(1));
 
-    let output = '';
-    process.output.pipeTo(
-      new WritableStream({
-        write(data) {
-          output += data;
-        },
-      })
-    );
+      let output = '';
+      process.output.pipeTo(
+        new WritableStream({
+          write(data) {
+            output += data;
+          }
+        })
+      );
 
-    const exitCode = await process.exit;
-    await updateFileSystem();
-    return `${output}\nProcess exited with code ${exitCode}`;
-  };
+      const exitCode = await process.exit;
+      await updateFileSystem();
+      return `${output}\nProcess exited with code ${exitCode}`;
+    };
 
   const terminalCommands = {
     echo: (args: string) => args,
@@ -91,16 +80,20 @@ const VSCodeClone: React.FC = () => {
 
   return (
     <TerminalContextProvider>
-      <div className="h-screen w-screen bg-gray-900 text-white grid grid-rows-[auto_1fr_auto]">
-        <TopBar />
-        <div className="flex">
-          {showExplorer && <FileExplorer handleFileClick={handleFileClick} />}
-          <EditorPane handleEditorChange={handleEditorChange} />
+      <div className="flex flex-col h-screen w-screen">
+        <div className="flex flex-row w-full h-full">
+          <EditorPanel handleEditorChange={handleEditorChange} />
+          <FileExplorer handleFileClick={handleFileClick} />
         </div>
-        {showTerminal && <TerminalPane terminalCommands={terminalCommands} />}
+        <TerminalPanel terminalCommands={terminalCommands} />
       </div>
     </TerminalContextProvider>
   );
 };
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+function updateFile(selectedFile: string, value: string) {
+  throw new Error('Function not implemented.');
+}
 
 export default VSCodeClone;
