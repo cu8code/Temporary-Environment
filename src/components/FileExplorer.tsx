@@ -1,16 +1,28 @@
-import { X } from "lucide-react";
-import { File } from "lucide-react";
+import React from 'react';
+import { X, File } from "lucide-react";
 import { useVSCodeStore } from "../store";
 
 const FileExplorer: React.FC<{
   handleFileClick: (fileName: string) => void;
 }> = ({ handleFileClick }) => {
-  const { files, selectedFile, setShowExplorer } = useVSCodeStore();
+  const { files, selectedFile, setShowExplorer, getTheme } = useVSCodeStore();
+  const theme = getTheme();
 
   return (
-    <div className="flex h-full">
-      <div className="bg-gray-800 h-full" style={{ width: '250px' }}>
-        <div className="flex justify-between items-center p-2 border-b border-gray-700">
+    <div className="flex h-full w-full flex-grow">
+      <div className="h-full w-full" style={{
+        backgroundColor: theme.fileExplorer.backgroundColor
+      }}>
+        <div className="flex justify-between items-center p-2" style={{
+          color: theme.fileExplorer.head.text_color,
+          backgroundColor: theme.fileExplorer.head.backgroundColor,
+          borderColor: theme.fileExplorer.head.borderColor,
+          borderWidth: theme.fileExplorer.head.borderWidth,
+          borderStyle: 'solid',
+          borderTopWidth: '0',
+          borderLeftWidth: '0',
+          borderRightWidth: '0'
+        }}>
           <h2 className="text-sm font-bold">Explorer</h2>
           <X
             size={18}
@@ -18,15 +30,20 @@ const FileExplorer: React.FC<{
             onClick={() => setShowExplorer(false)}
           />
         </div>
-        <div className="p-2">
+        <div className="p-2" style={{
+          color: theme.fileExplorer.body.text_color,
+          backgroundColor: theme.fileExplorer.body.backgroundColor,
+        }}>
           {Object.keys(files).map((fileName) => (
             <div
               key={fileName}
-              className={`flex items-center cursor-pointer hover:bg-gray-700 p-1 ${
-                fileName === selectedFile
-                  ? 'bg-gray-700'
-                  : 'bg-transparent'
-              }`}
+              className="flex items-center cursor-pointer p-1"
+              style={{
+                backgroundColor: fileName === selectedFile ? theme.fileExplorer.body.selectedColor : 'transparent',
+                ':hover': {
+                  backgroundColor: theme.fileExplorer.body.hoverColor
+                }
+              }}
               onClick={() => handleFileClick(fileName)}
             >
               <File size={16} className="mr-2" />

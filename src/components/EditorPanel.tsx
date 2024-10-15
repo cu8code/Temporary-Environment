@@ -1,3 +1,4 @@
+import React from 'react';
 import { X } from "lucide-react";
 import { useVSCodeStore } from "../store";
 import { Editor } from "@monaco-editor/react";
@@ -5,40 +6,61 @@ import { Editor } from "@monaco-editor/react";
 const EditorPanel: React.FC<{
   handleEditorChange: (value: string | undefined) => void;
 }> = ({ handleEditorChange }) => {
-  const { selectedFile, openFiles, files, setSelectedFile, closeFile } = useVSCodeStore();
+  const { selectedFile, openFiles, files, setSelectedFile, closeFile, getTheme } = useVSCodeStore();
+  const theme = getTheme();
+
+  const tabStyle = {
+    color: theme.main.topbar.text_color,
+    backgroundColor: theme.main.topbar.backgroundColor,
+    ':hover': {
+      backgroundColor: theme.main.topbar.hoverColor
+    }
+  };
+
+  const activeTabStyle = {
+    ...tabStyle,
+    backgroundColor: theme.main.topbar.selectedColor
+  };
+
   return (
     <div className="flex-grow flex flex-col h-full">
-      <div className="flex space-x-2 bg-gray-900 p-2 border-b border-gray-700">
+      <div className="flex space-x-2 p-2" style={{
+        backgroundColor: theme.main.topbar.backgroundColor,
+        borderBottom: `${theme.main.topbar.borderWidth} solid ${theme.main.topbar.borderColor}`
+      }}>
         {openFiles.map((fileName) => (
           <div
             key={fileName}
-            className={`flex items-center space-x-2 px-2 py-1 cursor-pointer ${
-              fileName === selectedFile ? 'bg-gray-700' : 'bg-transparent'
-            }`}
+            className="flex items-center space-x-2 px-2 py-1 cursor-pointer"
+            style={fileName === selectedFile ? activeTabStyle : tabStyle}
             onClick={() => setSelectedFile(fileName)}
           >
             <span>{fileName}</span>
             <X
               size={16}
               className="cursor-pointer"
-              onClick={() => closeFile(fileName)}
+              onClick={(e) => {
+                e.stopPropagation();
+                closeFile(fileName);
+              }}
             />
           </div>
         ))}
       </div>
       {selectedFile ? (
         <Editor
-          height="calc(100vh - 200px)" // subtracting top bar height
-          width="100%"
           defaultLanguage={
             selectedFile.endsWith('.js') ? 'javascript' : 'json'
           }
           value={files[selectedFile]?.file.contents || ''}
-          theme="vs-dark"
+          theme={theme.main.editor.theme}
           onChange={handleEditorChange}
         />
       ) : (
-        <div className="h-full flex items-center justify-center text-gray-500">
+        <div className="h-full flex items-center justify-center" style={{
+          color: theme.main.topbar.text_color,
+          backgroundColor: theme.main.topbar.backgroundColor
+        }}>
           Select a file to edit
         </div>
       )}
