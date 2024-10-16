@@ -7,7 +7,6 @@ import TerminalPanel from "./components/TerminalPanel";
 import { TerminalContextProvider } from "react-terminal";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 import { Sidebar } from "./components/SideBar";
-import downloadFile from "./hooks/downloadModule";
 
 const VSCodeClone: React.FC = () => {
   const {
@@ -27,7 +26,6 @@ const VSCodeClone: React.FC = () => {
   useEffect(() => {
     if (!webcontainerInstance) {
       bootWebContainer();
-      downloadFile()
     }
 
     return () => {

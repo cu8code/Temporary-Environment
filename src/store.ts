@@ -1,65 +1,26 @@
-import { WebContainer } from '@webcontainer/api';
-import { create } from 'zustand';
-import { themes } from './theme';
+import { FileSystemAPI, FileSystemTree, WebContainer } from "@webcontainer/api";
+import { create } from "zustand";
+import { Theme } from "./theme/theme";
+import { vscode_dark } from "./theme/vscode_dark";
 
-export interface Theme {
-  sidebar: {
-    color: string,
-    background: string,
-    borderColor: string,
-    borderWidth: string
-  },
-  fileExplorer: {
-    backgroundColor: string,
-    head: {
-      text_color: string,
-      backgroundColor: string,
-      borderColor: string,
-      borderWidth: string
-    },
-    body: {
-      text_color: string,
-      backgroundColor: string,
-      selectedColor: string,
-      hoverColor: string,
-      borderColor: string,
-      borderWidth: string
-    }
-  },
-  main: {
-    topbar: {
-      text_color: string,
-      backgroundColor: string,
-      selectedColor: string,
-      hoverColor: string,
-      borderColor: string,
-      borderWidth: string
-    }
-    editor: {
-      theme: string
-    },
-  },
-  terminal: {
-    background: string
-  }
-}
+const themes = [vscode_dark];
 
 interface VSCodeState {
   selectedFile: string | null;
   openFiles: string[];
-  files: FileSystem;
+  files: FileSystemTree;
   webcontainerInstance: WebContainer | null;
   showExplorer: boolean;
   showTerminal: boolean;
   showSearchBar: boolean;
   theme: number;
-  themes: Theme[]
+  themes: Theme[];
   setTheme: (index: number) => void;
   getThemes: () => Theme[];
   getTheme: () => Theme;
   setSelectedFile: (file: string | null) => void;
   setOpenFiles: (files: string[]) => void;
-  setFiles: (files: FileSystem) => void;
+  setFiles: (files: FileSystemTree) => void;
   setWebcontainerInstance: (instance: WebContainer | null) => void;
   setShowExplorer: (show: boolean) => void;
   setShowTerminal: (show: boolean) => void;
@@ -70,95 +31,121 @@ interface VSCodeState {
   updateFileSystem: () => Promise<void>;
 }
 
-
-interface FileSystem {
-  [key: string]: {
-    file: {
-      contents: string;
-    };
-  };
-}
-const initialFileSystem: FileSystem = {
-  'index.js': {
-    file: {
-      contents: 'console.log("Hello, WebContainer!");',
-    },
-  },
-  'package.json': {
-    file: {
-      contents: JSON.stringify(
-        {
-          name: 'webcontainer-project',
-          type: 'module',
-          dependencies: {},
-          scripts: {
-            start: 'node index.js',
-          },
-        },
-        null,
-        2
-      ),
-    },
-  },
-};
-
 export const useVSCodeStore = create<VSCodeState>((set, get) => ({
-  selectedFile: 'index.js',
-  openFiles: ['index.js'],
-  files: initialFileSystem,
+  selectedFile: null,
+  openFiles: [],
+  files: {},
   webcontainerInstance: null,
   showExplorer: true,
   showTerminal: true,
   showSearchBar: false,
-  theme: 0, // Default to light theme
+  theme: 0,
   themes: themes,
-  setTheme: (index) => set({ theme: index}),
+  setTheme: (index) => set({ theme: index }),
   setSelectedFile: (file) => set({ selectedFile: file }),
   setOpenFiles: (files) => set({ openFiles: files }),
   setFiles: (files) => set({ files }),
   setWebcontainerInstance: (instance) => set({ webcontainerInstance: instance }),
   setShowExplorer: (show) => set({ showExplorer: show }),
   setShowTerminal: (show) => set({ showTerminal: show }),
-  setShowSearchBar: (show) => set({ showTerminal: show }),
-  addFile: (fileName, content) => set((state) => ({
-    files: {
-      ...state.files,
-      [fileName]: { file: { contents: content } },
-    },
-  })),
-  updateFile: (fileName, content) => set((state) => ({
-    files: {
-      ...state.files,
-      [fileName]: { file: { contents: content } },
-    },
-  })),
-  closeFile: (fileName) => set((state: { openFiles: any[],selectedFile: string | null | undefined }) => ({
-    openFiles: state.openFiles.filter((file) => file !== fileName),
-    selectedFile: state.selectedFile === fileName ? state.openFiles[0] || null : state.selectedFile,
-  })),
-  updateFileSystem: async () => {
+  setShowSearchBar: (show) => set({ showSearchBar: show }),
+  addFile: (fileName, content) =>
+      set((state) => ({
+        files: {
+          ...state.files,
+          [fileName]: { file: { contents: content } },
+        },
+      })),
+    updateFile: (fileName, content) =>
+      set((state) => ({
+        files: {
+          ...state.files,
+          [fileName]: { file: { contents: content } },
+        },
+      })),
+    closeFile: (fileName) =>
+      set((state) => ({
+        openFiles: state.openFiles.filter((file) => file !== fileName),
+        selectedFile:
+          state.selectedFile === fileName ? state.openFiles[0] || null : state.selectedFile,
+      })),
+    updateFileSystem: async () => {
       const { webcontainerInstance, setFiles } = get();
       if (webcontainerInstance) {
-        const updatedFiles: FileSystem = {};
-        const entries = await webcontainerInstance.fs.readdir('.');
-        for (const entry of entries) {
-          try {
-            const contents = await webcontainerInstance.fs.readFile(entry, 'utf-8');
-            updatedFiles[entry] = { file: { contents } };
-          } catch (error) {
-            console.error(`Error reading file ${entry}:`, error);
-          }
-        }
+        const updatedFiles: FileSystemTree = {};
+        await readDir(webcontainerInstance.fs, ".", updatedFiles);
         setFiles(updatedFiles);
       }
     },
-    getThemes: () => {
-      const { themes } = get()
-      return themes
+    readFile: async (filePath: string) => {
+      const { webcontainerInstance } = get();
+      if (webcontainerInstance) {
+        try {
+          const file = await webcontainerInstance.fs.readFile(filePath, "utf-8");
+          return file;
+        } catch (error) {
+          console.error(`Error reading file ${filePath}:`, error);
+        }
+      }
     },
-    getTheme: () => {
-      const {theme, themes} = get()
-      return themes[theme]
+    writeFile: async (filePath: string, content: string) => {
+      const { webcontainerInstance } = get();
+      if (webcontainerInstance) {
+        try {
+          await webcontainerInstance.fs.writeFile(filePath, content);
+        } catch (error) {
+          console.error(`Error writing file ${filePath}:`, error);
+        }
+      }
+    },
+    deleteFile: async (filePath: string) => {
+      const { webcontainerInstance } = get();
+      if (webcontainerInstance) {
+        try {
+          await webcontainerInstance.fs.rm(filePath);
+        } catch (error) {
+          console.error(`Error deleting file ${filePath}:`, error);
+        }
+      }
+    },
+  createDirectory: async (dirPath: string) => {
+    const { webcontainerInstance } = get();
+    if (webcontainerInstance) {
+      try {
+        await webcontainerInstance.fs.mkdir(dirPath);
+      } catch (error) {
+        console.error(`Error creating directory ${dirPath}:`, error);
+      }
     }
-
+  },
+  getThemes: () => {
+    const { themes } = get();
+    return themes;
+  },
+  getTheme: () => {
+    const { theme, themes } = get();
+    return themes[theme];
+  },
 }));
+
+const readDir = async (
+  fs: FileSystemAPI,
+  dirPath: string,
+  updatedFiles: FileSystemTree,
+) => {
+  try {
+    const entries = await fs.readdir(dirPath, { withFileTypes: true });
+    for (const entry of entries) {
+      const entryPath = `${dirPath}/${entry.name}`;
+      if (entry.isDirectory()) {
+        updatedFiles[entryPath] = { directory: {} };
+        await readDir(fs, entryPath, updatedFiles[entryPath].directory);
+      } else {
+        const contents = await fs.readFile(entryPath, "utf-8");
+        updatedFiles[entryPath] = { file: { contents } };
+      }
+    }
+  } catch (error) {
+    console.error(`Error reading directory ${dirPath}:`, error);
+  }
+};
