@@ -1,50 +1,27 @@
-# React + TypeScript + Vite
+# Temporary Environment
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This project provides users with fast, temporary environments for testing ideas. Our goal is to create a no-signup, lightweight editor that delivers a fun and smooth experience. We currently support Node.js and Python developers, with plans to expand to more languages in the future.
 
-Currently, two official plugins are available:
+We use npm as our package manager, but we plan to add more options soon!
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## For Developers
 
-## Expanding the ESLint configuration
+### Installation
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+- Clone the project: `git clone`
+- Install dependencies: `npm i`
+- Run the development server: `npm run dev`
 
-- Configure the top-level `parserOptions` property like this:
+To **build** the project:
+- `npm run build`
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+### Contribution
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+We’re excited that you want to contribute! Here’s how to get started:
+- Go to the Issues tab
+- Pick an issue
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+After you are done
+- open a PR to **dev branch**
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
+Happy Hacking!
