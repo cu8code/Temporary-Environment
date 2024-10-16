@@ -50,6 +50,7 @@ const TerminalPanel = () => {
         return;
       }
 
+
       console.log("Webcontainer instance ready");
 
       try {
@@ -71,10 +72,6 @@ const TerminalPanel = () => {
         terminal.onData(async (data: string) => {
           console.log("Terminal input:", data);
           await input.write(data);
-
-          setTimeout(() => {
-            updateFileSystem();
-          }, 100);
         });
 
         return shellProcess;

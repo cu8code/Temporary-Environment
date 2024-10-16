@@ -130,7 +130,7 @@ export const useVSCodeStore = create<VSCodeState>((set, get) => ({
     return themes[theme];
   },
   createFile: async (filePath: string, fileName: string, content: string) => {
-      const { webcontainerInstance, updateFileSystem } = get();
+      const { webcontainerInstance } = get();
       if (webcontainerInstance) {
         try {
           await webcontainerInstance.fs.writeFile(`${filePath}/${fileName}`, content);
@@ -138,7 +138,6 @@ export const useVSCodeStore = create<VSCodeState>((set, get) => ({
           console.error(`Error creating file ${filePath}/${fileName}:`, error);
         }
       }
-      updateFileSystem()
     },
     createFolder: async (filePath: string, folderName: string) => {
       const { webcontainerInstance, updateFileSystem } = get();

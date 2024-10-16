@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { X } from "lucide-react";
 import { useVSCodeStore } from "../store";
 import { Editor } from "@monaco-editor/react";
@@ -9,6 +9,11 @@ export const EditorPanel: React.FC<{
 }> = ({ handleEditorChange }) => {
   const { selectedFile, openFiles, files, setSelectedFile, closeFile, getTheme } = useVSCodeStore();
   const theme = getTheme();
+
+
+  useEffect(() => {
+    console.log(files,selectedFile, getFileContent(selectedFile ?? "", files))
+  })
 
   const tabStyle = {
     color: theme.main.topbar.text_color,

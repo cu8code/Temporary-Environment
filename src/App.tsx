@@ -21,7 +21,7 @@ const VSCodeClone: React.FC = () => {
     updateFileSystem,
     updateFile,
     showExplorer,
-    showTerminal
+    showTerminal,
   } = useVSCodeStore();
 
   const [loading, setLoading] = useState(true);
@@ -39,18 +39,24 @@ const VSCodeClone: React.FC = () => {
   }, []);
 
   const bootWebContainer = async () => {
-    if (!webcontainerInstance){
+    if (!webcontainerInstance) {
       const instance = await WebContainer.boot();
       setWebcontainerInstance(instance);
-      console.log("webcontainerInstance positive", webcontainerInstance)
+      console.log("webcontainerInstance positive", webcontainerInstance);
       await instance.mount(files); // Mount initial files
       await updateFileSystem(); // Fetch the current file system from WebContainer
+      console.log("setting up fuck");
+      console.log(instance.workdir);
+      instance.fs.watch(
+        "/",
+        updateFileSystem
+      );
       setLoading(false);
     }
   };
 
   const handleEditorChange = async (value: string | undefined) => {
-    console.log(value, selectedFile)
+    console.log(value, selectedFile);
     if (selectedFile && value !== undefined) {
       updateFile(selectedFile, value); // Update Zustand store (in-memory)
       if (webcontainerInstance) {
