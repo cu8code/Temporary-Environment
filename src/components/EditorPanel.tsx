@@ -10,8 +10,9 @@ export const EditorPanel: React.FC<{
   const { selectedFile, openFiles, files, setSelectedFile, closeFile, getTheme } = useVSCodeStore();
   const theme = getTheme();
 
+
   useEffect(() => {
-    console.log(files, selectedFile)
+    console.log(files,selectedFile, getFileContent(selectedFile ?? "", files))
   })
 
   const tabStyle = {
