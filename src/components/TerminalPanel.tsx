@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import { useRef, useEffect } from 'react';
 import { Terminal } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
 import '@xterm/xterm/css/xterm.css';
@@ -6,9 +6,10 @@ import { useVSCodeStore } from "../store";
 import { Terminal as TerminalIcon, X } from "lucide-react";
 
 
-const TerminalPanel: React.FC = () => {
-  const { setShowTerminal, webcontainerInstance } = useVSCodeStore();
+const TerminalPanel = () => {
+  const { setShowTerminal, webcontainerInstance, updateFileSystem, getTheme} = useVSCodeStore();
   const terminalRef = useRef(null);
+  const theme = getTheme()
 
   useEffect(() => {
     const terminal = new Terminal({
@@ -21,6 +22,15 @@ const TerminalPanel: React.FC = () => {
       terminal.open(terminalRef.current);
     }
     fitAddon.fit();
+
+    const resizeObserver = new ResizeObserver(() => {
+      fitAddon.fit();
+    });
+
+    if (!terminalRef.current){
+      return
+    }
+    resizeObserver.observe(terminalRef.current);
 
     async function startShell(terminal: Terminal) {
       if (!webcontainerInstance){
@@ -37,8 +47,15 @@ const TerminalPanel: React.FC = () => {
       );
 
       const input = shellProcess.input.getWriter();
-      terminal.onData((data: string) => {
-        input.write(data);
+
+      // Listen for terminal data input
+      terminal.onData(async (data: string) => {
+        await input.write(data);
+
+        // Call updateFileSystem after the input command is processed
+        setTimeout(() => {
+          updateFileSystem();
+        }, 100);  // Delay to ensure the operation completes before updating the file system
       });
 
       return shellProcess;
@@ -47,7 +64,7 @@ const TerminalPanel: React.FC = () => {
     startShell(terminal).then((shellProcess) => {
       return () => {
         if (!shellProcess){
-          return
+          return;
         }
         shellProcess.kill();
         terminal.dispose();
@@ -56,25 +73,26 @@ const TerminalPanel: React.FC = () => {
 
     return () => {
       terminal.dispose();
+      resizeObserver.disconnect();
     };
-  }, [webcontainerInstance]);
+  }, [webcontainerInstance, updateFileSystem]);
 
   return (
-    <div className="flex flex-col">
-      <div className="bg-black" style={{ height: '200px' }}>
-        <div className="flex justify-between items-center p-2 border-b border-gray-700">
+    <div className="flex flex-col h-full w-full" style={{ background: theme.terminal.background }}>
+      <div className="bg-black border-b border-gray-700">
+        <div className="flex justify-between items-center p-2">
           <div className="flex items-center">
-            <TerminalIcon size={16} className="mr-2" />
-            <span>Terminal</span>
+            <TerminalIcon size={16} className="mr-2 text-gray-400" />
+            <span className="text-gray-400">Terminal</span>
           </div>
           <X
             size={18}
-            className="cursor-pointer"
+            className="cursor-pointer text-gray-400"
             onClick={() => setShowTerminal(false)}
           />
         </div>
-        <div className="h-full" ref={terminalRef} />
       </div>
+      <div style={{ background: theme.terminal.background }} className="h-full w-full overflow-hidden" ref={terminalRef} />
     </div>
   );
 };
