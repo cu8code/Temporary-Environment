@@ -1,13 +1,18 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { X } from "lucide-react";
 import { useVSCodeStore } from "../store";
 import { Editor } from "@monaco-editor/react";
+import { getFileContent } from '../utils/fileSystemTree';
 
-const EditorPanel: React.FC<{
+export const EditorPanel: React.FC<{
   handleEditorChange: (value: string | undefined) => void;
 }> = ({ handleEditorChange }) => {
   const { selectedFile, openFiles, files, setSelectedFile, closeFile, getTheme } = useVSCodeStore();
   const theme = getTheme();
+
+  useEffect(() => {
+    console.log(files, selectedFile)
+  })
 
   const tabStyle = {
     color: theme.main.topbar.text_color,
@@ -52,9 +57,9 @@ const EditorPanel: React.FC<{
           defaultLanguage={
             selectedFile.endsWith('.js') ? 'javascript' : 'json'
           }
-          value={files[selectedFile]?.file.contents || ''}
           theme={theme.main.editor.theme}
           onChange={handleEditorChange}
+          value={getFileContent(selectedFile, files)}
         />
       ) : (
         <div className="h-full flex items-center justify-center" style={{
@@ -68,4 +73,5 @@ const EditorPanel: React.FC<{
   );
 };
 
-export default EditorPanel;
+
+export default EditorPanel

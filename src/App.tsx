@@ -43,6 +43,7 @@ const VSCodeClone: React.FC = () => {
   };
 
   const handleEditorChange = async (value: string | undefined) => {
+    console.log(value, selectedFile)
     if (selectedFile && value !== undefined) {
       updateFile(selectedFile, value); // Update Zustand store (in-memory)
       if (webcontainerInstance) {

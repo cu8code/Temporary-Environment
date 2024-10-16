@@ -2,6 +2,7 @@ import { FileSystemAPI, FileSystemTree, WebContainer } from "@webcontainer/api";
 import { create } from "zustand";
 import { Theme } from "./theme/theme";
 import { vscode_dark } from "./theme/vscode_dark";
+import { setFileContent } from "./utils/fileSystemTree";
 
 const themes = [vscode_dark];
 
@@ -29,6 +30,8 @@ interface VSCodeState {
   updateFile: (fileName: string, content: string) => void;
   closeFile: (fileName: string) => void;
   updateFileSystem: () => Promise<void>;
+  createFile: (filePath: string, filename: string, content: string) => Promise<void>;
+    createFolder: (filePath: string, filename: string) => Promise<void>;
 }
 
 export const useVSCodeStore = create<VSCodeState>((set, get) => ({
@@ -57,12 +60,12 @@ export const useVSCodeStore = create<VSCodeState>((set, get) => ({
         },
       })),
     updateFile: (fileName, content) =>
-      set((state) => ({
-        files: {
-          ...state.files,
-          [fileName]: { file: { contents: content } },
-        },
-      })),
+      set((state) => {
+        setFileContent(fileName, state.files, content)
+        return{
+          ...state
+        }
+      }),
     closeFile: (fileName) =>
       set((state) => ({
         openFiles: state.openFiles.filter((file) => file !== fileName),
@@ -126,6 +129,28 @@ export const useVSCodeStore = create<VSCodeState>((set, get) => ({
     const { theme, themes } = get();
     return themes[theme];
   },
+  createFile: async (filePath: string, fileName: string, content: string) => {
+      const { webcontainerInstance, updateFileSystem } = get();
+      if (webcontainerInstance) {
+        try {
+          await webcontainerInstance.fs.writeFile(`${filePath}/${fileName}`, content);
+        } catch (error) {
+          console.error(`Error creating file ${filePath}/${fileName}:`, error);
+        }
+      }
+      updateFileSystem()
+    },
+    createFolder: async (filePath: string, folderName: string) => {
+      const { webcontainerInstance, updateFileSystem } = get();
+      if (webcontainerInstance) {
+        try {
+          await webcontainerInstance.fs.mkdir(`${filePath}/${folderName}`);
+        } catch (error) {
+          console.error(`Error creating folder ${filePath}/${folderName}:`, error);
+        }
+      }
+      updateFileSystem()
+    },
 }));
 
 const readDir = async (
