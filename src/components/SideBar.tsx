@@ -1,7 +1,7 @@
 import React from 'react';
 import { useVSCodeStore } from "../store";
-import { Folder, Search, Terminal } from "lucide-react";
-
+import {  Search, Terminal } from "lucide-react";
+import { PiFolderSimpleFill } from "react-icons/pi";
 export const Sidebar: React.FC = () => {
   const {
     showExplorer,
@@ -44,7 +44,7 @@ export const Sidebar: React.FC = () => {
         style={showExplorer ? activeItemStyle : itemStyle}
         onClick={() => setShowExplorer(!showExplorer)}
       >
-        <Folder height={20} width={20} style={iconStyle} />
+        <PiFolderSimpleFill  />
       </div>
       <div
         className="flex items-center py-2 px-4 cursor-pointer"

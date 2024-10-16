@@ -1,4 +1,4 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { Terminal } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
 import '@xterm/xterm/css/xterm.css';
@@ -7,75 +7,100 @@ import { Terminal as TerminalIcon, X } from "lucide-react";
 
 
 const TerminalPanel = () => {
-  const { setShowTerminal, webcontainerInstance, updateFileSystem, getTheme} = useVSCodeStore();
+  const { setShowTerminal, webcontainerInstance, updateFileSystem, getTheme } = useVSCodeStore();
   const terminalRef = useRef(null);
-  const theme = getTheme()
+  const theme = getTheme();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    console.log("Effect started");
+
+    if (!terminalRef.current) {
+      console.log("Terminal ref not available");
+      return;
+    }
+
+    console.log("Terminal ref available");
+
     const terminal = new Terminal({
       convertEol: true,
     });
     const fitAddon = new FitAddon();
 
+    console.log("Loading terminal addon");
     terminal.loadAddon(fitAddon);
-    if (terminalRef.current){
-      terminal.open(terminalRef.current);
-    }
+
+    console.log("Opening terminal");
+    terminal.open(terminalRef.current);
+
+    console.log("Fitting terminal");
     fitAddon.fit();
 
     const resizeObserver = new ResizeObserver(() => {
+      console.log("Resized");
       fitAddon.fit();
     });
-
-    if (!terminalRef.current){
-      return
-    }
     resizeObserver.observe(terminalRef.current);
 
     async function startShell(terminal: Terminal) {
-      if (!webcontainerInstance){
-        throw new Error("webcontainerInstance must not be null or undefined")
-        return
+      console.log("Starting shell");
+
+      if (!webcontainerInstance) {
+        console.log("Webcontainer instance not ready");
+        return;
       }
-      const shellProcess = await webcontainerInstance.spawn('jsh');
-      shellProcess.output.pipeTo(
-        new WritableStream({
-          write(data) {
-            terminal.write(data);
-          },
-        })
-      );
 
-      const input = shellProcess.input.getWriter();
+      console.log("Webcontainer instance ready");
 
-      // Listen for terminal data input
-      terminal.onData(async (data: string) => {
-        await input.write(data);
+      try {
+        console.log("Spawning shell process");
+        const shellProcess = await webcontainerInstance.spawn('jsh');
 
-        // Call updateFileSystem after the input command is processed
-        setTimeout(() => {
-          updateFileSystem();
-        }, 100);  // Delay to ensure the operation completes before updating the file system
-      });
+        console.log("Shell process started");
+        shellProcess.output.pipeTo(
+          new WritableStream({
+            write(data) {
+              console.log("Writing to terminal:", data);
+              terminal.write(data);
+            },
+          })
+        );
 
-      return shellProcess;
+        const input = shellProcess.input.getWriter();
+
+        terminal.onData(async (data: string) => {
+          console.log("Terminal input:", data);
+          await input.write(data);
+
+          setTimeout(() => {
+            updateFileSystem();
+          }, 100);
+        });
+
+        return shellProcess;
+      } catch (error) {
+        console.error("Error starting shell:", error);
+      }
     }
 
     startShell(terminal).then((shellProcess) => {
+      console.log("Shell process initialized");
+      setLoading(false);
       return () => {
-        if (!shellProcess){
-          return;
-        }
+        if (!shellProcess) return;
         shellProcess.kill();
         terminal.dispose();
       };
+    }).catch((error) => {
+      console.error("Error initializing shell:", error);
     });
 
     return () => {
+      console.log("Disposing terminal");
       terminal.dispose();
       resizeObserver.disconnect();
     };
-  }, [webcontainerInstance, updateFileSystem]);
+  }, [webcontainerInstance, updateFileSystem, terminalRef])
 
   return (
     <div className="flex flex-col h-full w-full" style={{ background: theme.terminal.background }}>
@@ -92,6 +117,13 @@ const TerminalPanel = () => {
           />
         </div>
       </div>
+      {
+        loading ? (
+          <div className="flex items-center justify-center h-full text-gray-400">
+            Initializing...
+          </div>
+        ) : null
+      }
       <div style={{ background: theme.terminal.background }} className="h-full w-full overflow-hidden" ref={terminalRef} />
     </div>
   );
