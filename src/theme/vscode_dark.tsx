@@ -1,27 +1,34 @@
 import { Theme } from "./theme";
 import { File, FileJson, FileJson2, Folder } from "lucide-react";
 
+const color = {
+  base: "#1f1f1f",
+  main: "#141414",
+  accent: "#939393",
+  _base: "#fff",
+};
+
 export const vscode_dark: Theme = {
   sidebar: {
-    color: "rgba(255,255,255,1)", // White
-    background: "rgba(20,20,20,1)", // Dark Gray
-    borderColor: "rgba(50,50,50,1)", // Gray
+    color: "#dbdbdb",
+    background: color.main,
+    borderColor: "#303030",
     borderWidth: "1px",
   },
   fileExplorer: {
-    backgroundColor: "rgba(20,20,20,1)", // Dark Gray
+    backgroundColor: color.main,
     head: {
-      text_color: "rgba(255,255,255,1)", // White
-      backgroundColor: "rgba(10,10,10,1)", // Very Dark Gray
-      borderColor: "rgba(50,50,50,1)", // Gray
+      text_color: color._base,
+      backgroundColor: color.main,
+      borderColor: color.accent,
       borderWidth: "1px",
     },
     body: {
-      text_color: "rgba(255,255,255,1)", // White
-      backgroundColor: "rgba(20,20,20,1)", // Dark Gray
-      selectedColor: "rgba(40,40,40,1)", // Dark Gray Hover
-      hoverColor: "rgba(30,30,30,1)", // Gray Hover
-      borderColor: "rgba(50,50,50,1)", // Gray
+      text_color: color._base,
+      backgroundColor: color.main,
+      selectedColor: color.base,
+      hoverColor: color.accent,
+      borderColor: color.accent,
       borderWidth: "1px",
       icons: {
         ".json": <File />,
@@ -34,18 +41,23 @@ export const vscode_dark: Theme = {
   },
   main: {
     topbar: {
-      text_color: "rgba(255,255,255,1)", // White
-      backgroundColor: "rgba(30,30,30,1)", // Dark Gray
-      selectedColor: "rgba(50,50,50,1)", // Gray Selected
-      hoverColor: "rgba(40,40,40,1)", // Gray Hover
-      borderColor: "rgba(50,50,50,1)", // Gray
+      text_color: color._base,
+      backgroundColor: color.base,
+      selectedColor: color.accent,
+      hoverColor: color.accent,
+      borderColor: color.accent,
       borderWidth: "1px",
     },
     editor: {
       theme: "vs-dark", // VS Code Dark theme
+      backgroundColor: color.base
     },
   },
   terminal: {
-    background: "rgba(10,10,10,1)", // Very Dark Gray
+    background: color.main, // Very Dark Gray
   },
+  loading: {
+    background: color.main,
+    color: color.accent
+  }
 };

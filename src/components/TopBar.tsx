@@ -1,43 +1,38 @@
 import React from 'react';
+import { X } from "lucide-react";
 import { useVSCodeStore } from "../store";
 
 const TopBar: React.FC = () => {
-  const { showExplorer, showTerminal, setShowExplorer, setShowTerminal, getTheme } = useVSCodeStore();
-  const theme = getTheme();
-
-  const buttonStyle = {
-    backgroundColor: theme.main.topbar.backgroundColor,
-    color: theme.main.topbar.text_color,
-    border: `${theme.main.topbar.borderWidth} solid ${theme.main.topbar.borderColor}`,
-    ':hover': {
-      backgroundColor: theme.main.topbar.hoverColor,
-    }
-  };
+  const { openFiles, setSelectedFile, selectedFile, closeFile, getTheme } = useVSCodeStore();
+  const theme = getTheme()
 
   return (
-    <div
-      className="flex justify-between items-center p-2"
-      style={{
-        backgroundColor: theme.main.topbar.backgroundColor,
-        borderBottom: `${theme.main.topbar.borderWidth} solid ${theme.main.topbar.borderColor}`
-      }}
-    >
-      <div className="flex space-x-2">
-        <button
-          className="px-2 py-1 rounded"
-          style={buttonStyle}
-          onClick={() => setShowExplorer(!showExplorer)}
+    <div className="flex space-x-2 p-2" style={{
+      display: openFiles.length == 0 ? "none" : "flex",
+      background: theme.main.topbar.backgroundColor,
+      color: theme.main.topbar.text_color
+    }}>
+      {openFiles.map((fileName) => (
+        <div
+          key={fileName}
+          className="flex items-center space-x-2 px-2 py-1 cursor-pointer"
+          onClick={() => setSelectedFile(fileName)}
         >
-          {showExplorer ? 'Hide' : 'Show'} Explorer
-        </button>
-        <button
-          className="px-2 py-1 rounded"
-          style={buttonStyle}
-          onClick={() => setShowTerminal(!showTerminal)}
-        >
-          {showTerminal ? 'Hide' : 'Show'} Terminal
-        </button>
-      </div>
+          <span>{fileName}</span>
+          <X
+            size={16}
+            className="cursor-pointer"
+            onClick={(e) => {
+              console.assert(selectedFile !== null, "selectedFile can not be null")
+              if (selectedFile === fileName){
+                setSelectedFile(null)
+                closeFile(fileName);
+              }
+              e.stopPropagation();
+            }}
+          />
+        </div>
+      ))}
     </div>
   );
 };

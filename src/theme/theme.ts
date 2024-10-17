@@ -40,9 +40,17 @@ export interface Theme {
     };
     editor: {
       theme: string;
+      backgroundColor: string;
     };
   };
   terminal: {
     background: string;
-  };
+  },
+  loading: {
+    background: string;
+    color: string;
+  }
 }
+
+
+export default Theme

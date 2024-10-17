@@ -2,7 +2,6 @@ import { FileSystemTree, FileNode, DirectoryNode } from "@webcontainer/api"
 
 export function getFileContent(path: string, tree: FileSystemTree){
   return Object.keys(tree).map((filePath): string => {
-    console.log(filePath, path, filePath === path)
     if (filePath === path){
       const res = (tree[filePath] as FileNode)
       if (typeof res.file.contents === "string") {

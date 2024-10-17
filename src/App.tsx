@@ -1,11 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { WebContainer } from "@webcontainer/api";
 import { useVSCodeStore } from "./store";
 import FileExplorer from "./components/FileExplorer";
 import EditorPanel from "./components/EditorPanel";
 import TerminalPanel from "./components/TerminalPanel";
 import { TerminalContextProvider } from "react-terminal";
-import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
+import {
+  ImperativePanelHandle,
+  Panel,
+  PanelGroup,
+  PanelResizeHandle,
+} from "react-resizable-panels";
 import { Sidebar } from "./components/SideBar";
 import Loading from "./components/Loading";
 
@@ -24,7 +29,11 @@ const VSCodeClone: React.FC = () => {
     showTerminal,
   } = useVSCodeStore();
 
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  // Panel refs with the appropriate type that includes collapse/expand
+  const fileExplorerPanelRef = useRef<ImperativePanelHandle | null>(null);
+  const terminalPanelRef = useRef<ImperativePanelHandle | null>(null);
 
   useEffect(() => {
     if (!webcontainerInstance) {
@@ -38,38 +47,95 @@ const VSCodeClone: React.FC = () => {
     };
   }, []);
 
-  const bootWebContainer = async () => {
+  const bootWebContainer = async (): Promise<void> => {
     if (!webcontainerInstance) {
       const instance = await WebContainer.boot();
       setWebcontainerInstance(instance);
-      console.log("webcontainerInstance positive", webcontainerInstance);
       await instance.mount(files); // Mount initial files
       await updateFileSystem(); // Fetch the current file system from WebContainer
-      console.log("setting up fuck");
-      console.log(instance.workdir);
-      instance.fs.watch(
-        "/",
-        updateFileSystem
-      );
+      instance.fs.watch("/", { recursive: true }, updateFileSystem);
       setLoading(false);
     }
   };
 
-  const handleEditorChange = async (value: string | undefined) => {
-    console.log(value, selectedFile);
+  const handleEditorChange = async (
+    value: string | undefined,
+  ): Promise<void> => {
+    console.assert(
+      value !== undefined,
+      "Editor value should not be undefined.",
+    );
+
     if (selectedFile && value !== undefined) {
+      console.assert(
+        selectedFile !== null,
+        "Selected file should not be null.",
+      );
       updateFile(selectedFile, value); // Update Zustand store (in-memory)
+
       if (webcontainerInstance) {
         await webcontainerInstance.fs.writeFile(selectedFile, value); // Write to the WebContainer FS
         await updateFileSystem(); // Sync the Zustand store with WebContainer FS
       }
+    } else {
+      console.warn(
+        "Editor change detected, but no file is selected or value is undefined.",
+      );
     }
   };
 
-  const handleFileClick = (fileName: string) => {
+  // Handle file explorer collapse/expand on showExplorer change
+  useEffect(() => {
+    if (showExplorer) {
+      handleExpandFileExplorer();
+    } else {
+      handleCollapseFileExplorer();
+    }
+  }, [showExplorer]);
+
+  // Handle terminal collapse/expand on showTerminal change
+  useEffect(() => {
+    if (showTerminal) {
+      handleExpandTerminal();
+    } else {
+      handleCollapseTerminal();
+    }
+  }, [showTerminal]);
+
+  const handleFileClick = (fileName: string): void => {
+    console.assert(
+      fileName !== undefined,
+      "File name should not be undefined.",
+    );
+
     setSelectedFile(fileName);
+
     if (!openFiles.includes(fileName)) {
       setOpenFiles([...openFiles, fileName]);
+    }
+  };
+
+  const handleCollapseFileExplorer = (): void => {
+    if (fileExplorerPanelRef.current) {
+      fileExplorerPanelRef.current.collapse();
+    }
+  };
+
+  const handleExpandFileExplorer = (): void => {
+    if (fileExplorerPanelRef.current) {
+      fileExplorerPanelRef.current.expand();
+    }
+  };
+
+  const handleCollapseTerminal = (): void => {
+    if (terminalPanelRef.current) {
+      terminalPanelRef.current.collapse();
+    }
+  };
+
+  const handleExpandTerminal = (): void => {
+    if (terminalPanelRef.current) {
+      terminalPanelRef.current.expand();
     }
   };
 
@@ -79,31 +145,35 @@ const VSCodeClone: React.FC = () => {
         <Loading />
       ) : (
         <PanelGroup autoSave="primary-layout" direction="horizontal">
-          <Panel minSize={5} defaultSize={5} maxSize={5}>
+          <Panel minSize={3} defaultSize={3} maxSize={3}>
             <Sidebar />
           </Panel>
           <PanelResizeHandle disabled={true} />
-          <Panel defaultSize={95}>
+          <Panel defaultSize={97}>
             <PanelGroup autoSave="secondary-layout" direction="horizontal">
-              {showExplorer && (
-                <Panel defaultSize={20}>
-                  <FileExplorer handleFileClick={handleFileClick} />
-                </Panel>
-              )}
-              {showExplorer && <PanelResizeHandle />}
+              <Panel
+                ref={fileExplorerPanelRef}
+                defaultSize={20}
+                collapsible={true}
+              >
+                <FileExplorer handleFileClick={handleFileClick} />
+              </Panel>
+              <PanelResizeHandle />
               <Panel defaultSize={80}>
                 <PanelGroup autoSave="tertiary-layout" direction="vertical">
                   <Panel defaultSize={80}>
                     <EditorPanel handleEditorChange={handleEditorChange} />
                   </Panel>
                   <PanelResizeHandle />
-                  {showTerminal && (
-                    <Panel defaultSize={20}>
-                      <TerminalContextProvider>
-                        <TerminalPanel />
-                      </TerminalContextProvider>
-                    </Panel>
-                  )}
+                  <Panel
+                    ref={terminalPanelRef}
+                    defaultSize={20}
+                    collapsible={true}
+                  >
+                    <TerminalContextProvider>
+                      <TerminalPanel />
+                    </TerminalContextProvider>
+                  </Panel>
                 </PanelGroup>
               </Panel>
             </PanelGroup>

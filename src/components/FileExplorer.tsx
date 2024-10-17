@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { X, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useVSCodeStore } from "../store";
 import { FileSystemTree } from "@webcontainer/api";
 
@@ -11,7 +11,6 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ handleFileClick }) => {
   const {
     files,
     selectedFile,
-    setShowExplorer,
     getTheme,
     createFile,
     createFolder,
@@ -217,24 +216,13 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ handleFileClick }) => {
             color: theme.fileExplorer.head.text_color,
             backgroundColor: theme.fileExplorer.head.backgroundColor,
             borderColor: theme.fileExplorer.head.borderColor,
-            borderWidth: theme.fileExplorer.head.borderWidth,
-            borderStyle: "solid",
-            borderTopWidth: "0",
-            borderLeftWidth: "0",
-            borderRightWidth: "0",
           }}
         >
           <h2 className="text-sm font-bold">Explorer</h2>
-          <div className="flex items-center">
+          <div className="flex items-center text-4xl">
             <Plus
-              size={16}
               className="cursor-pointer"
               onClick={() => handleAddButtonClick("file")}
-            />
-            <X
-              size={18}
-              className="cursor-pointer"
-              onClick={() => setShowExplorer(false)}
             />
           </div>
         </div>
