@@ -31,9 +31,9 @@ export const vscode_dark: Theme = {
       borderColor: color.accent,
       borderWidth: "1px",
       icons: {
-        ".json": <File />,
-        ".js": <FileJson2 />,
-        ".ts": <FileJson />,
+        "json": <File />,
+        "js": <FileJson2 />,
+        "ts": <FileJson />,
         "default-file": <File />,
         "default-folder": <Folder />,
       },
@@ -42,8 +42,8 @@ export const vscode_dark: Theme = {
   main: {
     topbar: {
       text_color: color._base,
-      backgroundColor: color.base,
-      selectedColor: color.accent,
+      backgroundColor: color.main,
+      selectedColor: "#303030",
       hoverColor: color.accent,
       borderColor: color.accent,
       borderWidth: "1px",

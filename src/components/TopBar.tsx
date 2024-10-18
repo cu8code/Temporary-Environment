@@ -7,7 +7,7 @@ const TopBar: React.FC = () => {
   const theme = getTheme()
 
   return (
-    <div className="flex space-x-2 p-2" style={{
+    <div className="flex space-x-2 overflow-scroll" style={{
       display: openFiles.length == 0 ? "none" : "flex",
       background: theme.main.topbar.backgroundColor,
       color: theme.main.topbar.text_color
@@ -15,8 +15,11 @@ const TopBar: React.FC = () => {
       {openFiles.map((fileName) => (
         <div
           key={fileName}
-          className="flex items-center space-x-2 px-2 py-1 cursor-pointer"
+          className="w-[150px] h-[50px] overflow-hidden text-nowrap flex items-center space-x-2 px-2 py-1 cursor-pointer"
           onClick={() => setSelectedFile(fileName)}
+          style={{
+            backgroundColor: fileName === selectedFile ? theme.main.topbar.selectedColor : ""
+          }}
         >
           <span>{fileName}</span>
           <X

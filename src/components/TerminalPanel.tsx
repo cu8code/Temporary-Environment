@@ -3,11 +3,10 @@ import { Terminal } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
 import '@xterm/xterm/css/xterm.css';
 import { useVSCodeStore } from "../store";
-import { Terminal as TerminalIcon, X } from "lucide-react";
-
+import { Terminal as TerminalIcon } from "lucide-react";
 
 const TerminalPanel = () => {
-  const { setShowTerminal, webcontainerInstance, updateFileSystem, getTheme } = useVSCodeStore();
+  const { webcontainerInstance, updateFileSystem, getTheme } = useVSCodeStore();
   const terminalRef = useRef(null);
   const theme = getTheme();
   useEffect(() => {
@@ -78,11 +77,6 @@ const TerminalPanel = () => {
             <TerminalIcon size={16} className="mr-2 text-gray-400" />
             <span className="text-gray-400">Terminal</span>
           </div>
-          <X
-            size={18}
-            className="cursor-pointer text-gray-400"
-            onClick={() => setShowTerminal(false)}
-          />
         </div>
       </div>
       <div style={{ background: theme.terminal.background }} className="h-full w-full overflow-hidden" ref={terminalRef} />

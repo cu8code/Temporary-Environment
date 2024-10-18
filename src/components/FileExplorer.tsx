@@ -203,7 +203,7 @@ const FileExplorer: React.FC<FileExplorerProps> = ({ handleFileClick }) => {
   }
 
   return (
-    <div className="relative flex h-full w-full flex-grow">
+    <div className="relative flex h-full w-full flex-grow min-w-[300px]">
       <div
         className="h-full w-full"
         style={{

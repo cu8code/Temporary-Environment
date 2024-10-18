@@ -18,7 +18,6 @@ const VSCodeClone: React.FC = () => {
   const {
     selectedFile,
     openFiles,
-    files,
     webcontainerInstance,
     setSelectedFile,
     setOpenFiles,
@@ -35,6 +34,11 @@ const VSCodeClone: React.FC = () => {
   const fileExplorerPanelRef = useRef<ImperativePanelHandle | null>(null);
   const terminalPanelRef = useRef<ImperativePanelHandle | null>(null);
 
+  const s = async (ins: WebContainer) => {
+    const blob = await fetch("/_vite-react-starter-main-bin")
+    ins.mount(await blob.arrayBuffer() as unknown as ArrayBuffer)
+  }
+
   useEffect(() => {
     if (!webcontainerInstance) {
       bootWebContainer();
@@ -45,14 +49,15 @@ const VSCodeClone: React.FC = () => {
         webcontainerInstance.teardown();
       }
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const bootWebContainer = async (): Promise<void> => {
     if (!webcontainerInstance) {
       const instance = await WebContainer.boot();
       setWebcontainerInstance(instance);
-      await instance.mount(files); // Mount initial files
-      await updateFileSystem(); // Fetch the current file system from WebContainer
+      await s(instance)
+      await updateFileSystem();
       instance.fs.watch("/", { recursive: true }, updateFileSystem);
       setLoading(false);
     }
