@@ -1,5 +1,7 @@
+"use client"
+
 import React from 'react';
-import { useVSCodeStore } from "../store";
+import { useVSCodeStore } from "@/utils/store";
 import { Editor } from "@monaco-editor/react";
 import { getFileContent } from '../utils/fileSystemTree';
 import TopBar from './TopBar';

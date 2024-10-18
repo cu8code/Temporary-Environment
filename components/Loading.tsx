@@ -1,4 +1,5 @@
-import { useVSCodeStore } from "../store"
+"use client"
+import { useVSCodeStore } from "@/utils/store"
 
 export const Loading = () => {
   const { getTheme } = useVSCodeStore()

@@ -1,5 +1,6 @@
+"use client"
 import React from 'react';
-import { useVSCodeStore } from "../store";
+import { useVSCodeStore } from "@/utils/store";
 import { PiTerminalWindow } from 'react-icons/pi';
 import { LuFiles } from 'react-icons/lu';
 export const Sidebar: React.FC = () => {

@@ -1,20 +1,21 @@
+"use client"
+
 import React, { useEffect, useState, useRef } from "react";
 import { WebContainer } from "@webcontainer/api";
-import { useVSCodeStore } from "./store";
-import FileExplorer from "./components/FileExplorer";
-import EditorPanel from "./components/EditorPanel";
-import TerminalPanel from "./components/TerminalPanel";
-import { TerminalContextProvider } from "react-terminal";
+import { useVSCodeStore } from "@/utils/store";
+import FileExplorer from "@/components/FileExplorer";
+import EditorPanel from "@/components/EditorPanel";
+import TerminalPanel from "@/components/TerminalPanel";
 import {
   ImperativePanelHandle,
   Panel,
   PanelGroup,
   PanelResizeHandle,
 } from "react-resizable-panels";
-import { Sidebar } from "./components/SideBar";
-import Loading from "./components/Loading";
+import { Sidebar } from "@/components/SideBar";
+import Loading from "@/components/Loading";
 
-const VSCodeClone: React.FC = () => {
+export default function VSCodeClone() {
   const {
     selectedFile,
     openFiles,
@@ -175,9 +176,7 @@ const VSCodeClone: React.FC = () => {
                     defaultSize={20}
                     collapsible={true}
                   >
-                    <TerminalContextProvider>
                       <TerminalPanel />
-                    </TerminalContextProvider>
                   </Panel>
                 </PanelGroup>
               </Panel>
@@ -188,5 +187,3 @@ const VSCodeClone: React.FC = () => {
     </div>
   );
 };
-
-export default VSCodeClone;

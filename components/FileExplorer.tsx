@@ -1,6 +1,7 @@
+"use client"
 import React, { useState, useEffect } from "react";
 import { Plus } from "lucide-react";
-import { useVSCodeStore } from "../store";
+import { useVSCodeStore } from "@/utils/store";
 import { FileSystemTree } from "@webcontainer/api";
 
 interface FileExplorerProps {

@@ -1,8 +1,8 @@
 import { FileSystemAPI, FileSystemTree, WebContainer } from "@webcontainer/api";
 import { create } from "zustand";
-import { Theme } from "./theme/theme";
-import { vscode_dark } from "./theme/vscode_dark";
-import { setFileContent } from "./utils/fileSystemTree";
+import { Theme } from "@/theme/theme";
+import { vscode_dark } from "@/theme/vscode_dark";
+import { setFileContent } from "@/utils/fileSystemTree";
 
 const themes = [vscode_dark];
 
