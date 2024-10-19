@@ -68,11 +68,12 @@ export const useVSCodeStore = create<VSCodeState>((set, get) => ({
     }));
   },
   updateFile: (fileName, content) => {
-    console.assert(fileName in get().files, "File does not exist");
     set((state) => {
-      setFileContent(fileName, state.files, content);
+      const updatedFiles = { ...state.files }; // Create a copy of the files object
+      setFileContent(fileName, updatedFiles, content); // Update the copied object
       return {
-        ...state
+        ...state, // Preserve other state properties
+        files: updatedFiles // Update the files property
       };
     });
   },

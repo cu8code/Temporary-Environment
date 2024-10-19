@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import React, { useEffect, useState, useRef } from "react";
 import { WebContainer } from "@webcontainer/api";
@@ -14,6 +14,7 @@ import {
 } from "react-resizable-panels";
 import { Sidebar } from "@/components/SideBar";
 import Loading from "@/components/Loading";
+import { View } from "@/components/View";
 
 export default function VSCodeClone() {
   const {
@@ -35,10 +36,10 @@ export default function VSCodeClone() {
   const fileExplorerPanelRef = useRef<ImperativePanelHandle | null>(null);
   const terminalPanelRef = useRef<ImperativePanelHandle | null>(null);
 
-  const s = async (ins: WebContainer) => {
-    const blob = await fetch("/_vite-react-starter-main-bin")
-    ins.mount(await blob.arrayBuffer() as unknown as ArrayBuffer)
-  }
+  const fetchFiles = async (ins: WebContainer) => {
+    const blob = await fetch("/_vite-react-starter-main-bin");
+    ins.mount((await blob.arrayBuffer()) as unknown as ArrayBuffer);
+  };
 
   useEffect(() => {
     if (!webcontainerInstance) {
@@ -50,19 +51,21 @@ export default function VSCodeClone() {
         webcontainerInstance.teardown();
       }
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const bootWebContainer = async (): Promise<void> => {
     if (!webcontainerInstance) {
       const instance = await WebContainer.boot();
       setWebcontainerInstance(instance);
-      await s(instance)
+      await fetchFiles(instance);
       await updateFileSystem();
       instance.fs.watch("/", { recursive: true }, updateFileSystem);
       setLoading(false);
     }
   };
+
+  let debounceTimer: NodeJS.Timeout | null = null; // Hold the debounce timer reference
 
   const handleEditorChange = async (
     value: string | undefined,
@@ -73,16 +76,20 @@ export default function VSCodeClone() {
     );
 
     if (selectedFile && value !== undefined) {
-      console.assert(
-        selectedFile !== null,
-        "Selected file should not be null.",
-      );
-      updateFile(selectedFile, value); // Update Zustand store (in-memory)
-
-      if (webcontainerInstance) {
-        await webcontainerInstance.fs.writeFile(selectedFile, value); // Write to the WebContainer FS
-        await updateFileSystem(); // Sync the Zustand store with WebContainer FS
+      // Clear the previous timer to debounce
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
       }
+
+      // Set a new timer to update after the user stops typing for a set duration
+      debounceTimer = setTimeout(async () => {
+        updateFile(selectedFile, value); // Update Zustand store (in-memory)
+
+        if (webcontainerInstance) {
+          await webcontainerInstance.fs.writeFile(selectedFile, value); // Write to the WebContainer FS
+          await updateFileSystem(); // Sync the Zustand store with WebContainer FS
+        }
+      }, 500); // Adjust the debounce duration (in milliseconds) as needed
     } else {
       console.warn(
         "Editor change detected, but no file is selected or value is undefined.",
@@ -150,23 +157,16 @@ export default function VSCodeClone() {
       {loading ? (
         <Loading />
       ) : (
-        <PanelGroup autoSave="primary-layout" direction="horizontal">
-          <Panel minSize={3} defaultSize={3} maxSize={3}>
-            <Sidebar />
+        <PanelGroup autoSave="secondary-layout" direction="horizontal">
+          <Sidebar />
+          <Panel ref={fileExplorerPanelRef} defaultSize={20} collapsible={true}>
+            <FileExplorer handleFileClick={handleFileClick} />
           </Panel>
-          <PanelResizeHandle disabled={true} />
-          <Panel defaultSize={97}>
-            <PanelGroup autoSave="secondary-layout" direction="horizontal">
-              <Panel
-                ref={fileExplorerPanelRef}
-                defaultSize={20}
-                collapsible={true}
-              >
-                <FileExplorer handleFileClick={handleFileClick} />
-              </Panel>
-              <PanelResizeHandle />
+          <PanelResizeHandle />
+          <Panel defaultSize={80}>
+            <PanelGroup autoSave="tertiary-layout" direction="horizontal">
               <Panel defaultSize={80}>
-                <PanelGroup autoSave="tertiary-layout" direction="vertical">
+                <PanelGroup autoSave="hept-layout" direction="vertical">
                   <Panel defaultSize={80}>
                     <EditorPanel handleEditorChange={handleEditorChange} />
                   </Panel>
@@ -176,9 +176,13 @@ export default function VSCodeClone() {
                     defaultSize={20}
                     collapsible={true}
                   >
-                      <TerminalPanel />
+                    <TerminalPanel />
                   </Panel>
                 </PanelGroup>
+              </Panel>
+              <PanelResizeHandle />
+              <Panel defaultSize={20}>
+                <View />
               </Panel>
             </PanelGroup>
           </Panel>
@@ -186,4 +190,4 @@ export default function VSCodeClone() {
       )}
     </div>
   );
-};
+}

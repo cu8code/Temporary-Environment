@@ -59,5 +59,8 @@ export const vscode_dark: Theme = {
   loading: {
     background: color.main,
     color: color.accent
+  },
+  view: {
+    background: color.main
   }
 };

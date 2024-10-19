@@ -49,6 +49,9 @@ export interface Theme {
   loading: {
     background: string;
     color: string;
+  },
+  view: {
+    background: string
   }
 }
 

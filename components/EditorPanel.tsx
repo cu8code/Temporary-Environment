@@ -17,11 +17,10 @@ export const EditorPanel: React.FC<{
       <TopBar />
       {selectedFile ? (
         <Editor
-        defaultLanguage={getLanguageId(selectedFile)}
+          defaultLanguage={getLanguageId(selectedFile)}
           theme={theme.main.editor.theme}
           onChange={handleEditorChange}
           value={getFileContent(selectedFile, files)}
-
         />
       ) : (
         <div className="h-full flex items-center justify-center" style={{
