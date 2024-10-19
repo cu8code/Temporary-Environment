@@ -21,9 +21,9 @@ export interface Theme {
       borderColor: string;
       borderWidth: string;
       icons: {
-        ".json": React.ReactNode;
-        ".js": React.ReactNode;
-        ".ts": React.ReactNode;
+        "json": React.ReactNode;
+        "js": React.ReactNode;
+        "ts": React.ReactNode;
         "default-file": React.ReactNode;
         "default-folder": React.ReactNode;
       };
@@ -40,9 +40,17 @@ export interface Theme {
     };
     editor: {
       theme: string;
+      backgroundColor: string;
     };
   };
   terminal: {
     background: string;
-  };
+  },
+  loading: {
+    background: string;
+    color: string;
+  }
 }
+
+
+export default Theme
