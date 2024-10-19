@@ -50,6 +50,7 @@ const TerminalPanel = () => {
             })
           );
           const input = shellProcess.input.getWriter();
+          await input.write(`npm i\n`); // Write command to shell
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           terminal.onData(async (data: any) => {
             await input.write(data);

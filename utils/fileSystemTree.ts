@@ -17,15 +17,18 @@ export function getFileContent(path: string, tree: FileSystemTree): string {
   return '';
 }
 
-export function setFileContent(path: string, tree: FileSystemTree, content: string){
-  Object.keys(tree).map(filePath=> {
-    if (filePath === path){
-      const res = (tree[filePath] as FileNode)
-      res.file.contents  = content
+export function setFileContent(path: string, tree: FileSystemTree, content: string): boolean {
+  for (const filePath in tree) {
+    if (filePath === path) {
+      if ((tree[filePath] as FileNode).file) {
+        (tree[filePath] as FileNode).file.contents = content;
+        return true;
+      }
+    } else if ((tree[filePath] as DirectoryNode).directory) {
+      if (setFileContent(path, (tree[filePath] as DirectoryNode).directory, content)) {
+        return true;
+      }
     }
-    const r = (tree[filePath] as DirectoryNode)
-    if (r.directory) {
-      return getFileContent(path, r.directory)
-    }
-  })
+  }
+  return false;
 }

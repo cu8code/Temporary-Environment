@@ -25,7 +25,7 @@ export const Sidebar: React.FC = () => {
 
   return (
     <div
-      className="flex flex-col w-full h-full p-2 items-center text-3xl"
+      className="flex flex-col min-w-[25px] h-full pt-4 items-center text-3xl"
       style={{
         background: theme.sidebar.background,
         borderRight: `${theme.sidebar.borderWidth} solid ${theme.sidebar.borderColor}`,
